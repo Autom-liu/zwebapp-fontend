@@ -1,6 +1,6 @@
 <template>
   <div id="picker" @click.stop="onShow">
-    <slot :current-index="currents"></slot>
+    <slot :currents="currents"></slot>
     <drawer>
       <picker-container
         v-if="isShow"
@@ -57,6 +57,8 @@ export default {
     },
     columnChange(currents, index) {
       console.log(currents, index);
+      this.currents = currents;
+      this.$emit('column-change', this.currents, index);
     },
   },
 };

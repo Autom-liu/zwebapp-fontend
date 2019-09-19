@@ -59,7 +59,6 @@ export default {
   methods: {
     initBs() {
       const defaultIndex = this.defaultCurrent.map((k, i) => this.initColumn[i].get(k));
-      console.log(defaultIndex);
       this.bs = this.$refs.scroll.map((v, i) => new BScroll(v, {
         scrollY: true,
         startY: -defaultIndex[i].index * this.scrollers[i],
@@ -70,7 +69,9 @@ export default {
       this.bs.forEach((v, i) => v.on('scroll', pos => this.onScroll(v, pos, i)));
     },
     initPoss() {
-      this.poss = this.bs.map(bs => bs.y);
+      // 初始化poss的同时刷新currents计算属性的值
+      this.currents = this.bs.map(bs => bs.y);
+      this.$emit('column-change', this.currents);
     },
     initScroller() {
       this.scrollers = this.$refs.wrapper.map((ele) => {
@@ -126,14 +127,19 @@ export default {
         return curIndex;
       });
     },
-    currents() {
-      return this.currIndex.map((c, i) => {
-        const entry = this.initColumn[i].entries();
-        for (let n = 0; n < c; n++) {
-          entry.next();
-        }
-        return entry.next().value[1];
-      });
+    currents: {
+      get() {
+        return this.currIndex.map((c, i) => {
+          const entry = this.initColumn[i].entries();
+          for (let n = 0; n < c; n++) {
+            entry.next();
+          }
+          return entry.next().value[1];
+        });
+      },
+      set(poss) {
+        this.poss = poss;
+      },
     },
     // 样式变化
     itemStyle() {

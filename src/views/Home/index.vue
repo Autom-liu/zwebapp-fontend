@@ -3,7 +3,9 @@
     <div class="box" @click="close">关闭</div>
     <div class="box" @click="changColumn">记一笔</div>
     <multi-picker :columns="columns" :isShow.sync="isShow" :default-current="defaultCurrent">
-      <div class="box">弹出</div>
+      <template v-slot:default="{ currents }">
+        <div class="box">{{showCurrents(currents)}}</div>
+      </template>
     </multi-picker>
   </div>
 </template>
@@ -38,6 +40,9 @@ export default {
     },
     close() {
       this.isShow = false;
+    },
+    showCurrents(currents) {
+      return currents;
     },
   },
 };
