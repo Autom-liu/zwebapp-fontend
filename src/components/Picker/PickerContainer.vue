@@ -134,7 +134,8 @@ export default {
           for (let n = 0; n < c; n++) {
             entry.next();
           }
-          return entry.next().value[1];
+          const e = entry.next().value;
+          return e[1];
         });
       },
       set(poss) {
@@ -157,12 +158,12 @@ export default {
   },
   watch: {
     initColumn(val, old) {
-      for (let i = 0; i < val.length; i++) {
-        if (!this.isMapEquals(val[i], old[i])) {
-          this.$emit('column-change', this.currents, i);
-          break;
-        }
-      }
+      this.$nextTick(() => {
+        this.bs.forEach((bs, i) => bs.refresh());
+        this.$nextTick(() => {
+          this.$emit('column-change', this.currents);
+        });
+      });
     },
   },
 };
