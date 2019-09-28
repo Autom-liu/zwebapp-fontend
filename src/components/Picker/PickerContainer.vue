@@ -1,6 +1,9 @@
 <template>
-  <div class="picker-container">
-    <div class="scroll-contain" v-for="(col, coli) in initColumn" :key="coli">
+  <div class="scroll-container">
+    <div class="container-top">
+      <i class="iconfont withdraw" @click.stop="withdraw">&#xe60a;</i>
+    </div>
+    <div class="scroll-box" v-for="(col, coli) in initColumn" :key="coli">
       <div class="scroll-selected" ref="scroll">
         <ul class="wrapper" ref="wrapper">
           <li
@@ -59,11 +62,15 @@ export default {
   methods: {
     initBs() {
       const defaultIndex = this.defaultCurrent.map((k, i) => this.initColumn[i].get(k));
+      if (defaultIndex.length === 0) {
+        return;
+      }
       this.bs = this.$refs.scroll.map((v, i) => new BScroll(v, {
         scrollY: true,
         startY: -defaultIndex[i].index * this.scrollers[i],
         click: true,
         probeType: 3,
+        bindToWrapper: true,
       }));
       this.bs.forEach((v, i) => v.on('scrollEnd', pos => this.onScrollEnd(v, pos, i)));
       this.bs.forEach((v, i) => v.on('scroll', pos => this.onScroll(v, pos, i)));
@@ -107,6 +114,9 @@ export default {
         }
       }
       return true;
+    },
+    withdraw() {
+      this.$emit('withdraw');
     },
   },
   computed: {
@@ -174,7 +184,7 @@ export default {
   $liHeight: 0.96rem;
   $bgc: #ebebeb;
 
-.picker-container {
+.scroll-container {
   display: flex;
   flex-direction: row;
   position: fixed;
@@ -184,7 +194,18 @@ export default {
   padding: 0.4rem 0;
   height: $liHeight * 5;
   background-color: $bgc;
-  .scroll-contain {
+  .container-top {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 9;
+    .withdraw {
+      float: right;
+      margin-right: 0.28rem;
+    }
+  }
+  .scroll-box {
     flex: 1;
     color: $darkFont;
     text-align: center;

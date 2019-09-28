@@ -9,6 +9,7 @@
         :label-field="labelField"
         :default-current="defaultCurrent"
         @column-change="columnChange"
+        @withdraw="withdraw"
       />
     </drawer>
   </div>
@@ -53,12 +54,15 @@ export default {
   },
   methods: {
     onShow() {
+      this.$emit('onpopup');
       this.$emit('update:isShow', true);
     },
     columnChange(currents, index) {
-      console.log(currents, index);
       this.currents = currents;
       this.$emit('column-change', this.currents, index);
+    },
+    withdraw() {
+      this.$emit('update:isShow', false);
     },
   },
 };

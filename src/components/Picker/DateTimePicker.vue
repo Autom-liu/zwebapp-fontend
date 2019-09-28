@@ -6,9 +6,10 @@
     :label-field="labelField"
     :default-current="defaultCurrent"
     @column-change="onColumnChange"
+    @onpopup="onpopup"
   >
-    <template slot-scope="props">
-      <p>{{props}}</p>
+    <template scope="{ currents }">
+      <slot :currents="currents"></slot>
     </template>
   </multiPicker>
 </template>
@@ -19,7 +20,7 @@ export default {
   props: {
     isShow: {
       type: Boolean,
-      default: false,
+      required: true,
     },
     minDate: {
       type: Date,
@@ -97,11 +98,13 @@ export default {
     onColumnChange(p, i) {
       const year = p[0].key;
       const month = p[1].key;
+      const date = p[2].key;
       if (i === 0) {
         this.columns = [this.columns[0], this.getMonthRange(year), this.getDayRange(year, month)];
       } else if (i === 1) {
         this.$set(this.columns, 2, this.getDayRange(year, month));
       }
+      this.$emit('column-change', new Date(`${year}-${month}-${date}`));
     },
     getMonthRange(year) {
       const arr = [];
@@ -139,6 +142,9 @@ export default {
     },
     isSameYearMonth(year, month, date) {
       return year === date.getFullYear() && month === date.getMonth() + 1;
+    },
+    onpopup() {
+      this.$emit('onpopup');
     },
   },
   mounted() {

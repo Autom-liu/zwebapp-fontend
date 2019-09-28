@@ -1,49 +1,25 @@
 <template>
-  <div class="home-container">
-    <div class="box" @click="close">关闭</div>
-    <div class="box" @click="changColumn">记一笔</div>
-    <multi-picker :columns="columns" :isShow.sync="isShow" :default-current="defaultCurrent">
-      <template v-slot:default="{ currents }">
-        <div class="box">{{showCurrents(currents)}}</div>
-      </template>
-    </multi-picker>
-  </div>
+  <router-link to="/flows">
+    <div class="home-container">
+        <div class="box">记一笔</div>
+    </div>
+  </router-link>
 </template>
 
 <script>
-import MultiPicker from '@/components/Picker/MultiPicker';
+
 export default {
-  components: {
-    MultiPicker,
-  },
   data() {
-    return {
-      columns: [[], [], []],
-      defaultCurrent: [1, 2, 3],
-      isShow: false,
-    };
+    return {};
   },
   mounted() {
-    const arr = [];
-    for (let i = 1; i <= 10; i++) {
-      arr.push({ key: i, label: 2015 + i });
-    }
-    this.columns = [arr, arr, arr];
+
   },
   methods: {
-    changColumn() {
-      const arr = [];
-      for (let i = 10; i <= 20; i++) {
-        arr.push({ key: i, label: 2026 - i });
-      }
-      this.$set(this.columns, 2, arr);
-    },
-    close() {
-      this.isShow = false;
-    },
-    showCurrents(currents) {
-      return currents;
-    },
+
+  },
+  computed: {
+
   },
 };
 </script>

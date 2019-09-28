@@ -18,7 +18,15 @@ function set(arr, index, value) {
   }
 }
 
+function get(arr, index, defaultValue) {
+  if (index >= 0 && index < arr.length) {
+    return arr[index];
+  }
+  return defaultValue;
+}
+
 export default {
   fill,
   set,
+  get,
 };
