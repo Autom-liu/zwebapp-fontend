@@ -33,7 +33,6 @@
               :label-field="item.labelField"
               :default-current="item.defaultCurrent"
               @column-change="item.columnChange"
-              @onpopup="() => onpopup(key)"
             >
               <template scope="{ currents }">{{ item.viewShow(currents) }}</template>
             </component>
@@ -87,7 +86,7 @@ export default {
           defaultCurrent: [],
           keyField: 'cateId',
           labelField: 'cateName',
-          viewShow: currents => (currents[0] && currents[1] ? `${currents[0].label} - ${currents[1].label}` : ''),
+          viewShow: currents => (currents[0] && currents[1] ? `${currents[0].cateName} - ${currents[1].cateName}` : ''),
           columnChange: this.cateColumnChange,
           onClose: () => {},
         },
@@ -102,7 +101,7 @@ export default {
           defaultCurrent: [],
           keyField: 'accId',
           labelField: 'accName',
-          viewShow: currents => (currents[1] ? currents[1].label : ''),
+          viewShow: currents => (currents[1] ? currents[1].accName : ''),
           columnChange: this.accColumnChange,
           onClose: () => {},
         },
@@ -157,10 +156,10 @@ export default {
      */
     cateColumnChange(currents, index) {
       if (index === 0) {
-        const nextCate = this.getCateByPid(currents[index].key);
+        const nextCate = this.getCateByPid(currents[index].cateId);
         this.$set(this.formItems.cate.columns, 1, nextCate);
       }
-      this.formItems.cate.defaultCurrent = currents.map(v => v.key);
+      this.formItems.cate.defaultCurrent = currents.map(v => v.cateId);
     },
     /**
      * 初始化账户数据
@@ -176,11 +175,11 @@ export default {
      */
     async accColumnChange(currents, index) {
       if (index === 0) {
-        await this.initAccList(currents[index].key);
+        await this.initAccList(currents[index].accId);
         const nextAcc = this.accList;
         this.$set(this.formItems.account.columns, 1, nextAcc);
       }
-      this.formItems.account.defaultCurrent = currents.map(v => v.key);
+      this.formItems.account.defaultCurrent = currents.map(v => v.accId);
     },
     tabChange(item, index) {
       this.tabItems.splice(index, 1);

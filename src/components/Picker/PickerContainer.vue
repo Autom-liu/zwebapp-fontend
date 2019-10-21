@@ -11,7 +11,7 @@
               :class="['item', itemStyle[coli] ? itemStyle[coli][item[1].index] : '']"
               :key="key"
             >
-              {{item[1].label}}
+              {{item[1][labelField]}}
             </li>
           </ul>
         </div>
@@ -124,8 +124,8 @@ export default {
       return this.columns.map((c) => {
         const map = new Map();
         c.forEach((v, i) => {
-          const value = { key: v[this.keyField], label: v[this.labelField], index: i };
-          map.set(value.key, value);
+          const value = { ...v, index: i };
+          map.set(v[this.keyField], value);
         });
         return map;
       });
