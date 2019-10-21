@@ -225,11 +225,13 @@ export default {
       };
       this.formItems[item.key] = otrItem;
     },
+    /**
     onpopup(key) {
       const keys = Object.keys(this.formItems).filter(k => k !== key);
       keys.forEach(k => this.$set(this.formItems[k], 'isShow', false));
       this.$forceUpdate();
     },
+     */
     onsave() {
       console.log(this.form);
     },

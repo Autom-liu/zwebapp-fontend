@@ -1,6 +1,7 @@
 <template>
   <div id="picker" @click.stop="onShow">
     <slot :currents="currents"></slot>
+    <div class="mask" v-if="isShow"></div>
     <drawer>
       <picker-container
         v-if="isShow"
@@ -73,5 +74,14 @@ export default {
 #picker {
   width: 100%;
   height: 100%;
+}
+.mask {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1;
+  background-color: rgba(55, 55, 55, .5);
 }
 </style>

@@ -1,21 +1,21 @@
 <template>
   <div class="scroll-container">
-    <div class="container-top">
-      <i class="iconfont withdraw" @click.stop="withdraw">&#xe60a;</i>
-    </div>
-    <div class="scroll-box" v-for="(col, coli) in initColumn" :key="coli">
-      <div class="scroll-selected" ref="scroll">
-        <ul class="wrapper" ref="wrapper">
-          <li
-            v-for="(item, key) in col"
-            :class="['item', itemStyle[coli] ? itemStyle[coli][item[1].index] : '']"
-            :key="key"
-          >
-            {{item[1].label}}
-          </li>
-        </ul>
+      <div class="container-top">
+        <i class="iconfont withdraw" @click.stop="withdraw">&#xe60a;</i>
       </div>
-    </div>
+      <div class="scroll-box" v-for="(col, coli) in initColumn" :key="coli">
+        <div class="scroll-selected" ref="scroll">
+          <ul class="wrapper" ref="wrapper">
+            <li
+              v-for="(item, key) in col"
+              :class="['item', itemStyle[coli] ? itemStyle[coli][item[1].index] : '']"
+              :key="key"
+            >
+              {{item[1].label}}
+            </li>
+          </ul>
+        </div>
+      </div>
   </div>
 </template>
 
@@ -183,7 +183,6 @@ export default {
   $darkFont: #333;
   $liHeight: 0.96rem;
   $bgc: #ebebeb;
-
 .scroll-container {
   display: flex;
   flex-direction: row;
@@ -191,6 +190,7 @@ export default {
   width: 100%;
   left: 0;
   bottom: 0;
+  z-index: 9;
   padding: 0.4rem 0;
   height: $liHeight * 5;
   background-color: $bgc;
