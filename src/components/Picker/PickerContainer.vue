@@ -4,7 +4,14 @@
         <i class="iconfont withdraw" @click.stop="withdraw">&#xe60a;</i>
       </div>
       <div class="scroll-box" v-for="(col, coli) in initColumn" :key="coli">
-        <div class="scroll-selected" ref="scroll">
+        <scroller
+          :scroll-ref="coli"
+          :startY="possy[coli]"
+          :refresh.sync="refresh"
+          wrapper-class="scroll-selected"
+          @scroll-end="onScrollEnd"
+          @scroll="onScroll"
+        >
           <ul class="wrapper" ref="wrapper">
             <li
               v-for="(item, key) in col"
@@ -14,16 +21,19 @@
               {{item[1][labelField]}}
             </li>
           </ul>
-        </div>
+        </scroller>
       </div>
   </div>
 </template>
 
 <script>
-import BScroll from '@better-scroll/core';
+import Scroller from '@/components/Scroller/Scroller';
 import ArrayUtils from '@/assets/utils/ArrayUtils';
 export default {
   name: 'picker-container',
+  components: {
+    Scroller,
+  },
   props: {
     columns: {
       validator: arr => Array.isArray(arr) && arr.reduce((a, b, i) => a && Array.isArray(b), true),
@@ -44,47 +54,37 @@ export default {
   },
   data() {
     return {
-      firstLoad: false,
-      bs: [], // better-score
-      poss: [], // 存放每条滚动位置信息
-      scrollers: [], // 存放每条初始高度信息
-      // currents: [], // 计算属性：存放每条当前选择信息
+      possy: [], // defaultCurrent -> possy -> currentIndex -> currents
+      refresh: false,
+      startY: 0,
+      liHeight: 0,
     };
   },
   mounted() {
-    this.$nextTick(() => {
-      this.initScroller();
-      this.initBs();
-      this.initPoss();
-    });
-    this.firstLoad = true;
+    this.initLiHeight();
+    this.initPossy();
+    this.$emit('column-change', this.currents);
   },
   methods: {
-    initBs() {
-      const defaultIndex = this.defaultCurrent.map((k, i) => this.initColumn[i].get(k));
-      if (defaultIndex.length === 0) {
-        return;
-      }
-      this.bs = this.$refs.scroll.map((v, i) => new BScroll(v, {
-        scrollY: true,
-        startY: -defaultIndex[i].index * this.scrollers[i],
-        click: true,
-        probeType: 3,
-        bindToWrapper: true,
-      }));
-      this.bs.forEach((v, i) => v.on('scrollEnd', pos => this.onScrollEnd(v, pos, i)));
-      this.bs.forEach((v, i) => v.on('scroll', pos => this.onScroll(v, pos, i)));
-    },
-    initPoss() {
-      // 初始化poss的同时刷新currents计算属性的值
-      this.currents = this.bs.map(bs => bs.y);
-      this.$emit('column-change', this.currents);
-    },
-    initScroller() {
-      this.scrollers = this.$refs.wrapper.map((ele) => {
+    /**
+     * 计算初始Li的高度
+     */
+    initLiHeight() {
+      if (this.$refs.wrapper) {
+        const ele = this.$refs.wrapper[0];
         const height = ele.clientHeight;
-        const liHeight = Math.ceil(height / ele.childElementCount);
-        return liHeight;
+        this.liHeight = Math.ceil(height / ele.childElementCount);
+      }
+    },
+    /**
+     * 计算初始位置
+     */
+    initPossy() {
+      this.possy = this.defaultCurrent.map((k, i) => {
+        const v = this.initColumn[i].get(k);
+        if (!v) return 0;
+        const index = v.index;
+        return -this.liHeight * index;
       });
     },
     /**
@@ -96,32 +96,31 @@ export default {
       }
       return Math.ceil(scrollTop / liHeight) * liHeight;
     },
-    onScrollEnd(bs, pos, index) {
-      const finalY = this.getScrollFinalTop(pos.y, this.scrollers[index]);
+    /**
+     * 响应滑动结束后事件
+     */
+    onScrollEnd([bs, pos, index]) {
+      const finalY = this.getScrollFinalTop(pos.y, this.liHeight);
       bs.scrollTo(pos.x, finalY, 0, undefined, undefined, true);
+      this.$set(this.possy, index, pos.y);
       this.$emit('column-change', this.currents, index);
     },
-    onScroll(bs, pos, index) {
-      this.$set(this.poss, index, pos.y);
+    /**
+     * 响应滑动中事件
+     */
+    onScroll([bs, pos, index]) {
+      this.$set(this.possy, index, pos.y);
     },
-    isMapEquals(map1, map2) {
-      if (map1.size !== map2.size) {
-        return false;
-      }
-      for (const key of map1.keys()) {
-        if (!map2.has(key)) {
-          return false;
-        }
-      }
-      return true;
-    },
+    /**
+     * 响应关闭后事件
+     */
     withdraw() {
-      this.$emit('withdraw');
+      this.$emit('withdraw', this.currents);
     },
   },
   computed: {
     initColumn() {
-      return this.columns.map((c) => {
+      return this.columns.map((c, k) => {
         const map = new Map();
         c.forEach((v, i) => {
           const value = { ...v, index: i };
@@ -130,31 +129,27 @@ export default {
         return map;
       });
     },
-    currIndex() {
-      return this.poss.map((y, i) => {
-        const liHeight = this.scrollers[i];
-        const curIndex = Math.abs(Math.round(y / liHeight));
+    currentIndex() {
+      return this.possy.map((y) => {
+        const curIndex = Math.abs(Math.round(y / this.liHeight));
         return curIndex;
       });
     },
-    currents: {
-      get() {
-        return this.currIndex.map((c, i) => {
-          const entry = this.initColumn[i].entries();
-          for (let n = 0; n < c; n++) {
-            entry.next();
-          }
-          const e = entry.next().value;
-          return e[1];
-        });
-      },
-      set(poss) {
-        this.poss = poss;
-      },
+    currents() {
+      return this.currentIndex.map((c, i) => {
+        const entry = this.initColumn[i].entries();
+        for (let n = 0; n < c; n++) {
+          entry.next();
+        }
+        const e = entry.next().value;
+        return e[1];
+      });
     },
-    // 样式变化
+    /**
+     * 样式变化
+     */
     itemStyle() {
-      return this.currIndex.map((c, i) => {
+      return this.currentIndex.map((c, i) => {
         const length = this.initColumn[i].size;
         const arr = ArrayUtils.fill('dispear', length);
         ArrayUtils.set(arr, c, 'selected');
@@ -168,12 +163,8 @@ export default {
   },
   watch: {
     initColumn(val, old) {
-      this.$nextTick(() => {
-        this.bs.forEach((bs, i) => bs.refresh());
-        this.$nextTick(() => {
-          this.$emit('column-change', this.currents);
-        });
-      });
+      this.$forceUpdate();
+      this.$emit('column-change', this.currents);
     },
   },
 };

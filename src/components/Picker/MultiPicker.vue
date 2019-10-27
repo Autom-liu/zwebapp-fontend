@@ -62,7 +62,9 @@ export default {
       this.currents = currents;
       this.$emit('column-change', this.currents, index);
     },
-    withdraw() {
+    withdraw(currents) {
+      this.currents = currents;
+      this.$emit('withdraw', this.currents);
       this.$emit('update:isShow', false);
     },
   },
