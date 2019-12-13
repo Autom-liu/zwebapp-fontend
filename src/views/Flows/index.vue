@@ -33,8 +33,9 @@
               :label-field="item.labelField"
               :default-current="item.defaultCurrent"
               @column-change="item.columnChange"
+              v-slot="{ currents }"
             >
-              <template scope="{ currents }">{{ item.viewShow(currents) }}</template>
+              {{ item.viewShow(currents) }}
             </component>
           </div>
           <i class="iconfont close"
@@ -90,21 +91,21 @@ export default {
           columnChange: this.cateColumnChange,
           onClose: () => {},
         },
-        account: {
-          id: '2000',
-          iconText: '&#xe600;',
-          name: '账户',
-          pickerType: 'picker',
-          columns: [[], []],
-          isShow: false,
-          isClosable: false,
-          defaultCurrent: [],
-          keyField: 'accId',
-          labelField: 'accName',
-          viewShow: currents => (currents[1] ? currents[1].accName : ''),
-          columnChange: this.accColumnChange,
-          onClose: () => {},
-        },
+        // account: {
+        //   id: '2000',
+        //   iconText: '&#xe600;',
+        //   name: '账户',
+        //   pickerType: 'picker',
+        //   columns: [[], []],
+        //   isShow: false,
+        //   isClosable: false,
+        //   defaultCurrent: [],
+        //   keyField: 'accId',
+        //   labelField: 'accName',
+        //   viewShow: currents => (currents[1] ? currents[1].accName : ''),
+        //   columnChange: this.accColumnChange,
+        //   onClose: () => {},
+        // },
       },
       tabItems: [
         {
@@ -138,7 +139,7 @@ export default {
     this.initCateSelection();
     await this.initAccSysType();
     await this.initAccList(this.accSysType[0].accId);
-    this.initAccSelection();
+    // this.initAccSelection();
   },
   methods: {
     ...mapActions(['initRecordType', 'initAccSysType', 'initCateList', 'initAccList', 'initOtr']),
@@ -155,11 +156,11 @@ export default {
      * 监听分类数据滚动变化
      */
     cateColumnChange(currents, index) {
+      let nextCate = currents[1];
       if (index === 0) {
-        const nextCate = this.getCateByPid(currents[index].cateId);
+        nextCate = this.getCateByPid(currents[index].cateId);
         this.$set(this.formItems.cate.columns, 1, nextCate);
       }
-      this.formItems.cate.defaultCurrent = currents.map(v => v.cateId);
     },
     /**
      * 初始化账户数据
@@ -173,9 +174,9 @@ export default {
     /**
      * 监听账户数据变化
      */
-    async accColumnChange(currents, index) {
+    accColumnChange(currents, index) {
       if (index === 0) {
-        await this.initAccList(currents[index].accId);
+        this.initAccList(currents[index].accId);
         const nextAcc = this.accList;
         this.$set(this.formItems.account.columns, 1, nextAcc);
       }

@@ -4,35 +4,25 @@
         <i class="iconfont withdraw" @click.stop="withdraw">&#xe60a;</i>
       </div>
       <div class="scroll-box" v-for="(col, coli) in initColumn" :key="coli">
-        <scroller
-          :scroll-ref="coli"
-          :startY="possy[coli]"
-          :refresh.sync="refresh"
-          wrapper-class="scroll-selected"
-          @scroll-end="onScrollEnd"
-          @scroll="onScroll"
-        >
-          <ul class="wrapper" ref="wrapper">
-            <li
-              v-for="(item, key) in col"
-              :class="['item', itemStyle[coli] ? itemStyle[coli][item[1].index] : '']"
-              :key="key"
-            >
-              {{item[1][labelField]}}
-            </li>
-          </ul>
-        </scroller>
+        <picker-column
+          :scroller-ref="coli"
+          :column="col"
+          :key-field="keyField"
+          :label-field="labelField"
+          :defaultCurrent="defaultCurrent[coli]"
+          @column-change="columnChange"
+          @current-change="currentChange"
+        />
       </div>
   </div>
 </template>
 
 <script>
-import Scroller from '@/components/Scroller/Scroller';
-import ArrayUtils from '@/assets/utils/ArrayUtils';
+import PickerColumn from './PickerColumn';
 export default {
   name: 'picker-container',
   components: {
-    Scroller,
+    PickerColumn,
   },
   props: {
     columns: {
@@ -41,11 +31,11 @@ export default {
     },
     keyField: {
       type: String,
-      default: 'key',
+      required: true,
     },
     labelField: {
       type: String,
-      default: 'label',
+      required: true,
     },
     defaultCurrent: {
       type: Array,
@@ -54,62 +44,20 @@ export default {
   },
   data() {
     return {
-      possy: [], // defaultCurrent -> possy -> currentIndex -> currents
-      refresh: false,
-      startY: 0,
-      liHeight: 0,
+      currents: [],
     };
   },
   mounted() {
-    this.initLiHeight();
-    this.initPossy();
-    this.$emit('column-change', this.currents);
+
   },
   methods: {
-    /**
-     * 计算初始Li的高度
-     */
-    initLiHeight() {
-      if (this.$refs.wrapper) {
-        const ele = this.$refs.wrapper[0];
-        const height = ele.clientHeight;
-        this.liHeight = Math.ceil(height / ele.childElementCount);
-      }
-    },
-    /**
-     * 计算初始位置
-     */
-    initPossy() {
-      this.possy = this.defaultCurrent.map((k, i) => {
-        const v = this.initColumn[i].get(k);
-        if (!v) return 0;
-        const index = v.index;
-        return -this.liHeight * index;
-      });
-    },
-    /**
-     * 矫正滑动后的位置
-     */
-    getScrollFinalTop(scrollTop, liHeight) {
-      if (Math.abs(scrollTop % liHeight) > (liHeight / 2)) {
-        return Math.floor(scrollTop / liHeight) * liHeight;
-      }
-      return Math.ceil(scrollTop / liHeight) * liHeight;
-    },
-    /**
-     * 响应滑动结束后事件
-     */
-    onScrollEnd([bs, pos, index]) {
-      const finalY = this.getScrollFinalTop(pos.y, this.liHeight);
-      bs.scrollTo(pos.x, finalY, 0, undefined, undefined, true);
-      this.$set(this.possy, index, pos.y);
+    columnChange(current, index) {
+      this.$set(this.currents, index, current);
       this.$emit('column-change', this.currents, index);
     },
-    /**
-     * 响应滑动中事件
-     */
-    onScroll([bs, pos, index]) {
-      this.$set(this.possy, index, pos.y);
+    currentChange(current, index) {
+      this.$set(this.currents, index, current);
+      this.$emit('current-change', this.currents);
     },
     /**
      * 响应关闭后事件
@@ -129,48 +77,14 @@ export default {
         return map;
       });
     },
-    currentIndex() {
-      return this.possy.map((y) => {
-        const curIndex = Math.abs(Math.round(y / this.liHeight));
-        return curIndex;
-      });
-    },
-    currents() {
-      return this.currentIndex.map((c, i) => {
-        const entry = this.initColumn[i].entries();
-        for (let n = 0; n < c; n++) {
-          entry.next();
-        }
-        const e = entry.next().value;
-        return e[1];
-      });
-    },
-    /**
-     * 样式变化
-     */
-    itemStyle() {
-      return this.currentIndex.map((c, i) => {
-        const length = this.initColumn[i].size;
-        const arr = ArrayUtils.fill('dispear', length);
-        ArrayUtils.set(arr, c, 'selected');
-        ArrayUtils.set(arr, c + 1, 'near');
-        ArrayUtils.set(arr, c - 1, 'near');
-        ArrayUtils.set(arr, c + 2, 'further');
-        ArrayUtils.set(arr, c - 2, 'further');
-        return arr;
-      });
-    },
   },
   watch: {
-    initColumn(val, old) {
-      this.$forceUpdate();
-      this.$emit('column-change', this.currents);
-    },
+
   },
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
   $darkFont: #333;
   $liHeight: 0.96rem;
   $bgc: #ebebeb;

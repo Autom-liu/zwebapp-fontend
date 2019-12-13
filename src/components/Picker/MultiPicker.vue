@@ -10,6 +10,7 @@
         :label-field="labelField"
         :default-current="defaultCurrent"
         @column-change="columnChange"
+        @current-change="currentChange"
         @withdraw="withdraw"
       />
     </drawer>
@@ -33,11 +34,11 @@ export default {
     },
     keyField: {
       type: String,
-      default: 'key',
+      required: true,
     },
     labelField: {
       type: String,
-      default: 'label',
+      required: true,
     },
     defaultCurrent: {
       type: Array,
@@ -57,6 +58,9 @@ export default {
     onShow() {
       this.$emit('onpopup');
       this.$emit('update:isShow', true);
+    },
+    currentChange(currents) {
+      this.currents = currents;
     },
     columnChange(currents, index) {
       this.currents = currents;

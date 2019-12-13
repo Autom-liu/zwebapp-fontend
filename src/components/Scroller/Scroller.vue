@@ -12,16 +12,24 @@ export default {
     startY: Number,
     scrollRef: [String, Number],
     wrapperClass: String,
+    refresh: Boolean,
   },
   data() {
     return {
-      cutdown: false,
       bs: null,
+      lastHeight: 0,
     };
+  },
+  updated() {
+    if (this.refresh) {
+      this.bs.refresh();
+      this.$emit('update:refresh', false);
+    }
   },
   mounted() {
     this.$nextTick(() => {
-      this.bs = new BScroll(this.$refs[this.scrollRef], {
+      const el = this.$refs[this.scrollRef];
+      this.bs = new BScroll(el, {
         scrollY: true,
         startY: this.startY,
         click: true,
@@ -37,11 +45,17 @@ export default {
       this.$emit('scroll-end', [this.bs, pos, this.scrollRef]);
     },
     onScroll(pos) {
-      if (!this.cutdown) {
-        this.cutdown = true;
+      if (!this.refresh) {
         this.$emit('scroll', [this.bs, pos, this.scrollRef]);
-        setTimeout(() => { this.cutdown = false; }, 50);
       }
+    },
+    checkRefresh() {
+      return true;
+    },
+  },
+  watch: {
+    refresh(val, old) {
+
     },
   },
 };
