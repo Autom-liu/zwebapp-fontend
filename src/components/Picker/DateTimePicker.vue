@@ -1,12 +1,12 @@
 <template>
   <multiPicker
-    :is-show.sync="show"
+    :is-show="isShow"
     :columns="columns"
     :key-field="keyField"
     :label-field="labelField"
     :default-current="defaultCurrent"
     @column-change="onColumnChange"
-    @onpopup="onpopup"
+    @withdraw="withdraw"
   >
     <template scope="{ currents }">
       <slot :currents="currents"></slot>
@@ -42,6 +42,7 @@ export default {
       keyField: 'key',
       labelField: 'label',
       now: new Date(),
+      currentDate: new Date(),
       defaultYearIndex: 0,
       defaultMonthIndex: 0,
       defaultDayIndex: 0,
@@ -83,16 +84,23 @@ export default {
     },
     initDay() {
       const day = [];
+      const year = this.defaultDate.getFullYear();
+      const month = this.defaultDate.getMonth() + 1;
+      let dayMax = this.dayMap[month];
+      // 今年是闰年
+      if (year % 4 === 0 && month === 2) {
+        dayMax = 29;
+      }
       // eslint-disable-next-line no-plusplus
-      for (let d = 1; d <= 31; d++) {
+      for (let d = 1; d <= dayMax; d++) {
         day.push({ key: d, label: `${d}日` });
       }
       return day;
     },
-    initDefault() {
-      const year = this.defaultDate.getFullYear();
-      const month = this.defaultDate.getMonth() + 1;
-      const date = this.defaultDate.getDate();
+    initDefault(defaultDate) {
+      const year = defaultDate.getFullYear();
+      const month = defaultDate.getMonth() + 1;
+      const date = defaultDate.getDate();
       return [year, month, date];
     },
     onColumnChange(p, i) {
@@ -104,7 +112,8 @@ export default {
       } else if (i === 1) {
         this.$set(this.columns, 2, this.getDayRange(year, month));
       }
-      this.$emit('column-change', new Date(`${year}-${month}-${date}`));
+      this.currentDate = new Date(`${year}-${month}-${date}`);
+      this.$emit('column-change', this.currentDate);
     },
     getMonthRange(year) {
       const arr = [];
@@ -129,7 +138,12 @@ export default {
           arr.push({ key: i, label: `${i}日` });
         }
       } else {
-        for (let i = 1; i <= this.dayMap[month]; i++) {
+        let dayMax = this.dayMap[month];
+        // 今年是闰年
+        if (year % 4 === 0 && month === 2) {
+          dayMax = 29;
+        }
+        for (let i = 1; i <= dayMax; i++) {
           arr.push({ key: i, label: `${i}日` });
         }
       }
@@ -143,24 +157,20 @@ export default {
     isSameYearMonth(year, month, date) {
       return year === date.getFullYear() && month === date.getMonth() + 1;
     },
-    onpopup() {
-      this.$emit('onpopup');
+    withdraw() {
+      this.$emit('withdraw', this.currentDate);
+      this.defaultCurrent = this.initDefault(this.currentDate);
     },
   },
   mounted() {
     this.columns = [this.initYear(), this.initMonth(), this.initDay()];
-    this.defaultCurrent = this.initDefault();
+    this.defaultCurrent = this.initDefault(this.defaultDate);
   },
   components: {
     MultiPicker,
   },
   watch: {
-    isShow(val) {
-      this.show = val;
-    },
-    show(val) {
-      this.$emit('update:isShow', val);
-    },
+
   },
 };
 </script>

@@ -23,24 +23,12 @@
         <input class="amount" v-model="amount" />
       </div>
       <transition-group name="list" tag="div">
-        <div class="form-item" v-for="(item, key) of formItems" :key="key">
-          <label><i :class="['iconfont', key]" v-html="item.iconText"></i>{{item.name}}</label>
-          <div class="input-box">
-            <component :is="item.pickerType"
-              :columns="item.columns"
-              :is-show.sync="item.isShow"
-              :key-field="item.keyField"
-              :label-field="item.labelField"
-              :default-current="item.defaultCurrent"
-              @column-change="item.columnChange"
-              v-slot="{ currents }"
-            >
-              {{ item.viewShow(currents) }}
-            </component>
-          </div>
-          <i class="iconfont close"
-            v-show="item.isClosable"
-            @click="() => item.onremove(key)">&#xe60a;</i>
+        <cate-item :type="type" key="1000" :selected-cate.sync="formItems.selectedCate" />
+        <account-item key="2000" :selected-account.sync="formItems.selectedAccount" />
+        <time-item key="3000" v-if="timeItemShow" @onremove="onremove('time')" :selectedDate.sync="formItems.selectedDate" />
+        <div class="form-item" key="7000">
+          <label><i class="iconfont cate">&#xe600;</i>备注</label>
+          <div class="input-box"><input v-model="formItems.flowRemark" /> </div>
         </div>
       </transition-group>
     </div>
@@ -61,52 +49,53 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex';
-import Picker from '@/components/Picker/MultiPicker';
-import DateTimePicker from '@/components/Picker/DateTimePicker';
+import CateItem from './components/cateItem';
+import AccountItem from './components/accountItem';
+import TimeItem from './components/timeItem';
 import ArrayUtils from '@/assets/utils/ArrayUtils';
 import ObjectUtils from '@/assets/utils/ObjectUtils';
+import axios from 'axios';
 
 export default {
   components: {
-    Picker,
-    DateTimePicker,
+    CateItem,
+    AccountItem,
+    TimeItem,
   },
   data() {
     return {
       type: '',
       amount: '0.00',
+      activeItem: '',
+      timeItemShow: false,
       formItems: {
-        cate: {
-          id: '1000',
-          iconText: '&#xe600;',
-          name: '分类',
-          pickerType: 'picker',
-          columns: [[], []],
-          isShow: false,
-          isClosable: false,
-          defaultCurrent: [],
-          keyField: 'cateId',
-          labelField: 'cateName',
-          viewShow: currents => (currents[0] && currents[1] ? `${currents[0].cateName} - ${currents[1].cateName}` : ''),
-          columnChange: this.cateColumnChange,
-          onClose: () => {},
-        },
-        // account: {
-        //   id: '2000',
-        //   iconText: '&#xe600;',
-        //   name: '账户',
-        //   pickerType: 'picker',
-        //   columns: [[], []],
-        //   isShow: false,
-        //   isClosable: false,
-        //   defaultCurrent: [],
-        //   keyField: 'accId',
-        //   labelField: 'accName',
-        //   viewShow: currents => (currents[1] ? currents[1].accName : ''),
-        //   columnChange: this.accColumnChange,
-        //   onClose: () => {},
-        // },
+        selectedAccount: {},
+        selectedCate: [],
+        flowRemark: '',
+        selectedDate: new Date(),
       },
+      constTabItems: [
+        {
+          id: '3000',
+          key: 'time',
+          name: '时间',
+        },
+        {
+          id: '0001',
+          key: 'shopper',
+          name: '商家',
+        },
+        {
+          id: '0002',
+          key: 'member',
+          name: '成员',
+        },
+        {
+          id: '0003',
+          key: 'project',
+          name: '项目',
+        },
+      ],
       tabItems: [
         {
           id: '3000',
@@ -131,122 +120,45 @@ export default {
       ],
     };
   },
-  async mounted() {
+  created() {
     this.type = this.$route.params.id;
-    await this.initRecordType();
+    this.initRecordType();
     this.type = this.type || Object.keys(this.recordTypeDict)[0];
-    await this.initCateList(this.type);
-    this.initCateSelection();
-    await this.initAccSysType();
-    await this.initAccList(this.accSysType[0].accId);
-    // this.initAccSelection();
   },
   methods: {
-    ...mapActions(['initRecordType', 'initAccSysType', 'initCateList', 'initAccList', 'initOtr']),
-    /**
-     * 初始化分类列表数据
-     */
-    initCateSelection() {
-      const firstCate = this.getCateByPid(0);
-      const nextCate = this.getCateByPid(firstCate[0].cateId);
-      this.formItems.cate.columns = [firstCate, nextCate];
-      this.formItems.cate.defaultCurrent = [firstCate[0].cateId, nextCate[0].cateId];
-    },
-    /**
-     * 监听分类数据滚动变化
-     */
-    cateColumnChange(currents, index) {
-      let nextCate = currents[1];
-      if (index === 0) {
-        nextCate = this.getCateByPid(currents[index].cateId);
-        this.$set(this.formItems.cate.columns, 1, nextCate);
-      }
-    },
-    /**
-     * 初始化账户数据
-     */
-    initAccSelection() {
-      const firstType = this.accSysType;
-      const nextAcc = this.accList;
-      this.formItems.account.columns = [firstType, nextAcc];
-      this.formItems.account.defaultCurrent = [firstType[0].accId, nextAcc[0].accId];
-    },
-    /**
-     * 监听账户数据变化
-     */
-    accColumnChange(currents, index) {
-      if (index === 0) {
-        this.initAccList(currents[index].accId);
-        const nextAcc = this.accList;
-        this.$set(this.formItems.account.columns, 1, nextAcc);
-      }
-      this.formItems.account.defaultCurrent = currents.map(v => v.accId);
-    },
+    ...mapActions(['initRecordType']),
     tabChange(item, index) {
       this.tabItems.splice(index, 1);
-      const onClose = () => this.tabItems.push(item);
       switch (item.key) {
-        case 'time': this.pushTime(item, onClose); break;
-        default: this.pushOther(item, onClose); break;
+        case 'time': this.timeItemShow = true; break;
+        default: break;
       }
     },
-    pushTime(item, onClose) {
-      const time = {
-        id: item.id,
-        iconText: '&#xe751;',
-        name: '时间',
-        pickerType: 'date-time-picker',
-        isShow: false,
-        isClosable: true,
-        columnChange: d => d,
-        viewShow: currents => (currents[2] ? `${currents[0].label} ${currents[1].label} ${currents[2].label}` : ''),
-        onremove: (key) => {
-          this.$delete(this.formItems, key);
-          onClose();
-        },
+    onremove(key) {
+      switch(key) {
+        case 'time':
+          this.tabItems.splice(0, 0, this.constTabItems[0]);
+          this.timeItemShow = false;
+          break;
+        default: break;
       };
-      this.formItems[item.key] = time;
     },
-    pushOther(item, onClose) {
-      const otrItem = {
-        id: item.id,
-        iconText: '&#xe603;',
-        name: item.name,
-        pickerType: 'picker',
-        isShow: false,
-        isClosable: true,
-        columns: [[]],
-        defaultCurrent: [],
-        keyField: 'otrId',
-        labelField: 'otrName',
-        columnChange: () => {},
-        viewShow: () => {},
-        onremove: (key) => { this.$delete(this.formItems, key); onClose(); },
-      };
-      this.formItems[item.key] = otrItem;
-    },
-    /**
-    onpopup(key) {
-      const keys = Object.keys(this.formItems).filter(k => k !== key);
-      keys.forEach(k => this.$set(this.formItems[k], 'isShow', false));
-      this.$forceUpdate();
-    },
-     */
     onsave() {
+      console.log(this.formItems);
       console.log(this.form);
+      axios.post('/zwebapp-flow/flow/add', this.form);
     },
   },
   computed: {
-    ...mapGetters(['recordTypeDict', 'cateList', 'getCateByPid', 'accList', 'accSysType', 'projectList']),
+    ...mapGetters(['recordTypeDict']),
     form() {
       return ObjectUtils.filterNull({
         flowAmount: this.amount,
-        srcAccId: ArrayUtils.get(this.formItems.account.defaultCurrent, 1),
-        cateId1: this.formItems.cate && ArrayUtils.get(this.formItems.cate.defaultCurrent, 0),
-        cateId2: this.formItems.cate && ArrayUtils.get(this.formItems.cate.defaultCurrent, 1),
-        otrId1: this.formItems.project && ArrayUtils.get(this.formItems.project.defaultCurrent, 0),
-        otrId2: this.formItems.member && ArrayUtils.get(this.formItems.member.defaultCurrent, 0),
-        otrId3: this.formItems.shopper && ArrayUtils.get(this.formItems.shopper.defaultCurrent, 0),
+        srcAccId: this.formItems.selectedAccount.accId,
+        cateId1: this.formItems.selectedCate[0] &&  this.formItems.selectedCate[0].cateId,
+        cateId2: this.formItems.selectedCate[1] &&  this.formItems.selectedCate[1].cateId,
+        flowRemark: this.flowRemark,
+        createTime: this.formItems.selectedDate,
         flowRecordType: this.type,
       });
     },

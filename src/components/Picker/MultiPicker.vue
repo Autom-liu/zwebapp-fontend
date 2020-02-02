@@ -1,5 +1,5 @@
 <template>
-  <div id="picker" @click.stop="onShow">
+  <div id="picker">
     <slot :currents="currents"></slot>
     <div class="mask" v-if="isShow"></div>
     <drawer>
@@ -54,11 +54,10 @@ export default {
       currents: [],
     };
   },
+  mounted() {
+
+  },
   methods: {
-    onShow() {
-      this.$emit('onpopup');
-      this.$emit('update:isShow', true);
-    },
     currentChange(currents) {
       this.currents = currents;
     },
@@ -69,7 +68,6 @@ export default {
     withdraw(currents) {
       this.currents = currents;
       this.$emit('withdraw', this.currents);
-      this.$emit('update:isShow', false);
     },
   },
 };

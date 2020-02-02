@@ -47,7 +47,7 @@ export default {
       currents: [],
     };
   },
-  mounted() {
+  created() {
 
   },
   methods: {

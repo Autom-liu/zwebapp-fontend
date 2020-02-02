@@ -141,7 +141,7 @@ export default {
       }
     },
     column(val, old) {
-      if (val.size <= this.currentIndex) {
+      if (val.size !== old.size) {
         // this.possy = this.resizePossy(val.size);
         this.refresh = true;
       }

@@ -8,6 +8,11 @@ module.exports = {
     open: true,
     hotOnly: false,
     proxy: {
+      '/zwebapp-flow': {
+        target: 'http://127.0.0.1:9083',
+        ws: false,
+        changeOrigin: false,
+      },
       '/': {
         target: 'http://127.0.0.1:9080',
         ws: false,
