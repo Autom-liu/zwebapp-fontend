@@ -25,7 +25,8 @@
       <transition-group name="list" tag="div">
         <cate-item :type="type" key="1000" :selected-cate.sync="formItems.selectedCate" />
         <account-item key="2000" :selected-account.sync="formItems.selectedAccount" />
-        <time-item key="3000" v-if="timeItemShow" @onremove="onremove('time')" :selectedDate.sync="formItems.selectedDate" />
+        <time-item key="3000" v-if="timeItemShow" @onremove="onremove('time')"
+          :selectedDate.sync="formItems.selectedDate" />
         <div class="form-item" key="7000">
           <label><i class="iconfont cate">&#xe600;</i>备注</label>
           <div class="input-box"><input v-model="formItems.flowRemark" /> </div>
@@ -49,12 +50,11 @@
 
 <script>
 import { mapGetters, mapActions } from 'vuex';
+import axios from 'axios';
 import CateItem from './components/cateItem';
 import AccountItem from './components/accountItem';
 import TimeItem from './components/timeItem';
-import ArrayUtils from '@/assets/utils/ArrayUtils';
 import ObjectUtils from '@/assets/utils/ObjectUtils';
-import axios from 'axios';
 
 export default {
   components: {
@@ -135,13 +135,14 @@ export default {
       }
     },
     onremove(key) {
-      switch(key) {
+      switch (key) {
         case 'time':
           this.tabItems.splice(0, 0, this.constTabItems[0]);
           this.timeItemShow = false;
+          this.formItems.selectedDate = null;
           break;
         default: break;
-      };
+      }
     },
     onsave() {
       console.log(this.formItems);
@@ -155,9 +156,9 @@ export default {
       return ObjectUtils.filterNull({
         flowAmount: this.amount,
         srcAccId: this.formItems.selectedAccount.accId,
-        cateId1: this.formItems.selectedCate[0] &&  this.formItems.selectedCate[0].cateId,
-        cateId2: this.formItems.selectedCate[1] &&  this.formItems.selectedCate[1].cateId,
-        flowRemark: this.flowRemark,
+        cateId1: this.formItems.selectedCate[0] && this.formItems.selectedCate[0].cateId,
+        cateId2: this.formItems.selectedCate[1] && this.formItems.selectedCate[1].cateId,
+        flowRemark: this.formItems.flowRemark,
         createTime: this.formItems.selectedDate,
         flowRecordType: this.type,
       });

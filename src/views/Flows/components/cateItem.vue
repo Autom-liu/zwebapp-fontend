@@ -78,6 +78,7 @@ export default {
     },
     withdraw(currents) {
       this.$emit('update:selectedCate', currents);
+      this.defaultCurrent = [currents[0].cateId, currents[1].cateId];
       this.isShow = false;
     },
   },
