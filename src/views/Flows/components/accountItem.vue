@@ -1,6 +1,6 @@
 <template>
   <div class="form-item">
-    <label><i class="iconfont cate">&#xe600;</i>账户</label>
+    <label><i class="iconfont cate">&#xe600;</i>{{label}}</label>
     <div class="input-box" @click="onpupup">
       <picker
         :columns="accountColumns"
@@ -24,6 +24,10 @@ import Picker from '@/components/Picker/MultiPicker';
 
 export default {
   props: {
+    label: {
+      type: String,
+      default: '账户'
+    },
     selectedAccount: {
       type: Object,
       required: true,

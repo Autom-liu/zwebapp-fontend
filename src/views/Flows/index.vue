@@ -26,7 +26,7 @@
         <cate-item :type="type" key="1000" v-if="type != '0003' && type != '0004'"
           :selected-cate.sync="formItems.selectedCate" />
         <account-item key="2000" :selected-account.sync="formItems.selectedAccount" />
-        <account-item key="2001" v-if="type === '0003'"
+        <account-item key="2001" v-if="type === '0003'" :label="'目标账户'"
           :selected-account.sync="formItems.selectedDestAccount" />
         <time-item key="3000" v-if="timeItemShow" @onremove="onremove('time')"
           :selectedDate.sync="formItems.selectedDate" />
@@ -306,7 +306,7 @@ $remarkColor: #8079ac;
     flex-direction: row;
     label {
       display: block;
-      width: 1.28rem;
+      width: 1.8rem;
       text-align: center;
       color: #666;
       .iconfont {
