@@ -23,8 +23,11 @@
         <input class="amount" v-model="amount" />
       </div>
       <transition-group name="list" tag="div">
-        <cate-item :type="type" key="1000" :selected-cate.sync="formItems.selectedCate" />
+        <cate-item :type="type" key="1000" v-if="type != '0003' && type != '0004'"
+          :selected-cate.sync="formItems.selectedCate" />
         <account-item key="2000" :selected-account.sync="formItems.selectedAccount" />
+        <account-item key="2001" v-if="type === '0003'"
+          :selected-account.sync="formItems.selectedDestAccount" />
         <time-item key="3000" v-if="timeItemShow" @onremove="onremove('time')"
           :selectedDate.sync="formItems.selectedDate" />
         <div class="form-item" key="7000">
@@ -70,6 +73,7 @@ export default {
       timeItemShow: false,
       formItems: {
         selectedAccount: {},
+        selectedDestAccount: {},
         selectedCate: [],
         flowRemark: '',
         selectedDate: new Date(),
@@ -154,6 +158,9 @@ export default {
       }
     },
     onsave() {
+      if (this.type === '0003' || this.type === '0004') {
+        this.formItems.selectedCate = [];
+      }
       console.log(this.formItems);
       console.log(this.form);
       axios.post('/zwebapp-flow/flow/add', this.form);
@@ -165,6 +172,7 @@ export default {
       return ObjectUtils.filterNull({
         flowAmount: this.amount,
         srcAccId: this.formItems.selectedAccount.accId,
+        destAccId: this.formItems.selectedDestAccount.accId,
         cateId1: this.formItems.selectedCate[0] && this.formItems.selectedCate[0].cateId,
         cateId2: this.formItems.selectedCate[1] && this.formItems.selectedCate[1].cateId,
         flowRemark: this.formItems.flowRemark,
