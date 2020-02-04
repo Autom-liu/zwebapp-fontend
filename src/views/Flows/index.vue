@@ -9,7 +9,7 @@
       <ul class="nav-list">
         <router-link
           tag="li"
-          class="hover"
+          :class="{hover: type === code}"
           :to="`/flows/${code}`"
           v-for="(label, code) of recordTypeDict"
           :key="code"
@@ -19,7 +19,7 @@
       </ul>
     </div>
     <div class="flow-form">
-      <div class="amount-box">
+      <div :class="['amount-box', amountBoxStyleMap[type]]">
         <input class="amount" v-model="amount" />
       </div>
       <transition-group name="list" tag="div">
@@ -73,6 +73,12 @@ export default {
         selectedCate: [],
         flowRemark: '',
         selectedDate: new Date(),
+      },
+      amountBoxStyleMap: {
+        '0001': 'income',
+        '0002': 'outcome',
+        '0003': 'transfer',
+        '0004': 'recharge',
       },
       constTabItems: [
         {
@@ -183,6 +189,9 @@ $headerPadding: 0.2rem;
 $hoverColor: #fd8201;
 $arrowSize: 6px;
 $incomeColor: #f84f38;
+$outcomeColor: #3ab882;
+$transferColor: #fcb738;
+$rechargeColor: #00b4ff;
 $cateIconColor: #ce7998;
 $accountColor: #cecb6b;
 $memberColor: #efb198;
@@ -250,12 +259,29 @@ $remarkColor: #8079ac;
   .amount-box {
     padding: 0.48rem 0;
     border-bottom: 1px solid $incomeColor;
+    color: $incomeColor;
     .amount {
       display: block;
       font-size: 48px;
       font-weight: 600;
       line-height: 1;
+      color: inherit;
+    }
+    &.income {
+      border-bottom-color: $incomeColor;
       color: $incomeColor;
+    }
+    &.outcome {
+      border-bottom-color: $outcomeColor;
+      color: $outcomeColor;
+    }
+    &.transfer {
+      border-bottom-color: $transferColor;
+      color: $transferColor;
+    }
+    &.recharge {
+      border-bottom-color: $rechargeColor;
+      color: $rechargeColor;
     }
   }
   .list-enter-active {
