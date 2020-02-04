@@ -41,9 +41,9 @@ export default {
       labelField: 'accName',
     };
   },
-  created() {
-    this.initAccSysType();
-    this.initAccList(this.accSysType[0].accId);
+  async created() {
+    const accSysType = await this.initAccSysType();
+    await this.initAccList(Object.keys(accSysType)[0]);
     this.initAccSelection();
   },
   methods: {
@@ -66,10 +66,9 @@ export default {
     /**
      * 监听账户数据变化
      */
-    accountColumnChange(currents, index) {
+    async accountColumnChange(currents, index) {
       if (index === 0) {
-        this.initAccList(currents[index].accId);
-        const nextAcc = this.accList;
+        const nextAcc = await this.initAccList(currents[index].accId);
         this.$set(this.accountColumns, 1, nextAcc);
       }
       this.defaultCurrent = currents.map(v => v.accId);
@@ -82,7 +81,7 @@ export default {
   computed: {
     ...mapGetters(['accList', 'accSysType']),
   },
-}
+};
 </script>
 
 <style>

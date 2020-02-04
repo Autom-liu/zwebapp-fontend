@@ -28,14 +28,18 @@ export default {
         .then(res => res.data).then(res => res.data)
         .then(data => ctx.commit('initCateList', { cateList: data, cateType }));
     },
-    initAccList(ctx, accSysType) {
-      const accList = sessionStorage.getItem(`accList:${accSysType}`);
+    async initAccList(ctx, accSysType) {
+      let accList = sessionStorage.getItem(`accList:${accSysType}`);
       if (accList) {
-        return ctx.commit('initAccList', { accList, accSysType });
+        ctx.commit('initAccList', { accList, accSysType });
+      } else {
+        await axios.get(`/account/list?accSysType=${accSysType}`)
+          .then(res => res.data).then(res => res.data)
+          // eslint-disable-next-line no-return-assign
+          .then(data => accList = data)
+          .then(data => ctx.commit('initAccList', { accList: data, accSysType }));
       }
-      return axios.get(`/account/list?accSysType=${accSysType}`)
-        .then(res => res.data).then(res => res.data)
-        .then(data => ctx.commit('initAccList', { accList: data, accSysType }));
+      return Promise.resolve(Array.isArray(accList) ? accList : JSON.parse(accList));
     },
     initOtr(ctx, otrType) {
       const otrList = sessionStorage.getItem(`otrList:${otrType}`);

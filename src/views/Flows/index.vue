@@ -120,10 +120,13 @@ export default {
       ],
     };
   },
-  created() {
-    this.type = this.$route.params.id;
-    this.initRecordType();
-    this.type = this.type || Object.keys(this.recordTypeDict)[0];
+  beforeCreate() {
+
+  },
+  async created() {
+    this.type = this.$route.params.id || '';
+    const recordTypeDict = await this.initRecordType();
+    this.type = this.type || Object.keys(recordTypeDict)[0];
   },
   methods: {
     ...mapActions(['initRecordType']),

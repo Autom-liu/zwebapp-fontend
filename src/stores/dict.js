@@ -34,13 +34,14 @@ const dictGetters = {
  * @param {String} mutationName 调用mutation函数名
  * @return Promise
  */
-function initDict(ctx, url, key, mutationName) {
-  const dict = sessionStorage.getItem(key);
+async function initDict(ctx, url, key, mutationName) {
+  let dict = sessionStorage.getItem(key);
   if (dict) {
-    return ctx.commit(mutationName, dict);
+    ctx.commit(mutationName, dict);
   }
-  return axios.get(url).then(res => res.data).then(res => res.data)
-    .then(data => ctx.commit(mutationName, data));
+  await axios.get(url).then(res => res.data).then(res => res.data)
+    .then((data) => { ctx.commit(mutationName, data); dict = data; });
+  return Promise.resolve(parseDict(dict, 'code', 'msg'));
 }
 
 const dictAction = {
@@ -63,6 +64,7 @@ const dictMutations = {
     } else {
       state.otrTypeDict = parseDict(JSON.parse(dict), 'code', 'msg');
     }
+    return Promise.resolve(dict);
   },
   initRecordType(state, dict) {
     if (Array.isArray(dict)) {

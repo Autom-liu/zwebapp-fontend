@@ -45,10 +45,6 @@ export default {
       labelField: 'cateName',
     };
   },
-  created() {
-    this.initCateList(this.type);
-    this.initCateSelection();
-  },
   methods: {
     ...mapActions(['initCateList']),
     viewShow(currents) {
@@ -84,6 +80,14 @@ export default {
   },
   computed: {
     ...mapGetters(['cateList', 'getCateByPid']),
+  },
+  watch: {
+    async type(val, old) {
+      if (this.type) {
+        await this.initCateList(this.type);
+        this.initCateSelection();
+      }
+    },
   },
 };
 </script>
